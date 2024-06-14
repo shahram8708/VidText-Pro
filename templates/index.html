@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VidText Pro</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4, #fad0c4, #ff9a9e, #fbc2eb);
+            background-size: 400% 400%;
+            animation: gradientBackground 15s ease infinite;
+        }
+
+        @keyframes gradientBackground {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .container {
+            text-align: center;
+            background: linear-gradient(135deg, #a1c4fd, #c2e9fb, #c2e9fb, #a1c4fd, #fbc2eb);
+            background-size: 400% 400%;
+            animation: gradientContainer 15s ease infinite;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            margin-top: 20px;
+            max-width: 600px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        @keyframes gradientContainer {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        h1 {
+            color: #343a40;
+            margin-bottom: 20px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        p {
+            color: #6c757d;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        textarea {
+            width: calc(100% - 30px);
+            max-width: 100%;
+            height: 140px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ced4da;
+            border-radius: 10px;
+            resize: none;
+            font-size: 16px;
+            font-family: 'Roboto', sans-serif;
+            transition: border-color 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            textarea {
+                width: calc(100% - 20px);
+            }
+        }
+
+
+        textarea:focus {
+            border-color: #007bff;
+        }
+
+        button {
+            padding: 12px 30px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        #progress-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        #progress-bar {
+            width: 100%;
+            height: 20px;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4, #fad0c4, #ff9a9e, #fbc2eb);
+            background-size: 400% 400%;
+            animation: gradientProgressBar 15s ease infinite;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        @keyframes gradientProgressBar {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        #progress-fill {
+            height: 100%;
+            width: 0;
+            background-color: #007bff;
+            transition: width 0.5s;
+        }
+
+        .wait {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        video {
+            margin-top: 20px;
+            width: 100%;
+            display: none;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            button {
+                padding: 10px 20px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>VidText Pro</h1>
+        <p>Enter your text below and click "Generate Video" to create a video based on the text. Please wait while the
+            video is being generated.</p>
+        <textarea id="text-input" placeholder="Enter text here"></textarea>
+        <button onclick="generateVideo()">Generate Video</button>
+        <div id="progress-container">
+            <div id="progress-bar">
+                <div id="progress-fill"></div>
+                <div class="wait">Please Wait...</div>
+            </div>
+        </div>
+        <video id="video-output" controls></video>
+    </div>
+    <script>
+        async function generateVideo() {
+            const textInput = document.getElementById('text-input').value;
+            const progressContainer = document.getElementById('progress-container');
+            const progressFill = document.getElementById('progress-fill');
+            const videoOutput = document.getElementById('video-output');
+
+            if (!textInput.trim()) {
+                alert('Please enter some text.');
+                return;
+            }
+
+            progressContainer.style.display = 'block';
+            progressFill.style.width = '0%';
+
+            const interval = setInterval(() => {
+                const currentWidth = parseInt(progressFill.style.width);
+                if (currentWidth >= 100) {
+                    clearInterval(interval);
+                } else {
+                    progressFill.style.width = currentWidth + 10 + '%';
+                }
+            }, 500);
+
+            try {
+                const response = await fetch('/generate-video', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: textInput }),
+                });
+
+                const result = await response.json();
+
+                progressContainer.style.display = 'none';
+                if (result.videoUrl) {
+                    videoOutput.src = result.videoUrl;
+                    videoOutput.style.display = 'block';
+                } else {
+                    alert('Failed to generate video');
+                }
+            } catch (error) {
+                clearInterval(interval);
+                progressContainer.style.display = 'none';
+                alert('An error occurred while generating the video. Please try again.');
+            }
+        }
+    </script>
+</body>
+
+</html>
